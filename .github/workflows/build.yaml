@@ -43,7 +43,7 @@ jobs:
         run: |
           docker build \
             -t $IMAGE_NAME:${IMAGE_TAG} \
-            ./${{ matrix.service }}
+            ./App/${{ matrix.service }}
 
       - name: Push Docker image
         run: |
