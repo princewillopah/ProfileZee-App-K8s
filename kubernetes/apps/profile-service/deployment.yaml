@@ -19,13 +19,32 @@ spec:
           ports:
             - containerPort: 8002
 
-          envFrom:
-            - configMapRef:
-                name: profilezee-app-config
-            - secretRef:
-                name: profilezee-app-secrets
-
           env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-app-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-app-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-app-secrets
+                  key: AWS_S3_BUCKET
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: profilezee-app-config
+                  key: AWS_REGION
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: profilezee-infra-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

@@ -12,16 +12,16 @@ Namespace="profilezee"
 
 if kubectl get ns "$Namespace" &> /dev/null; then
   echo "Deleting Old app in namespace $Namespace... is already exists."
-#   kubectl delete ns "$Namespace"
+  kubectl delete ns "$Namespace"
 else
   echo "Namespace $Namespace does not exist. Skipping deletion."
-  kubectl create namespace "$Namespace"
+#   kubectl create namespace "$Namespace"
 fi
 
 
 # echo "Namespace '$Namespace' deleted."
 # # Apply the Kubernetes manifests
-# kubectl create namespace "$Namespace"
+kubectl create namespace "$Namespace"
 
 
 

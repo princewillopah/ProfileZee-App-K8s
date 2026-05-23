@@ -27,8 +27,8 @@ spec:
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
-                secretKeyRef:
-                  name: profilezee-infra-secrets
+                configMapKeyRef:
+                  name: profilezee-infra-config
                   key: KAFKA_BOOTSTRAP_SERVERS
           resources:
             requests:

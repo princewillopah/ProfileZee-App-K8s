@@ -19,13 +19,17 @@ spec:
           ports:
             - containerPort: 8001
 
-          envFrom:
-            - configMapRef:
-                name: profilezee-app-config
-            - secretRef:
-                name: profilezee-app-secrets
-
           env:
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: profilezee-infra-config
+                  key: REDIS_URL
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: profilezee-infra-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

@@ -4,14 +4,25 @@ metadata:
   name: kafka-topic-init
   namespace: profilezee
 spec:
+  backoffLimit: 10
   template:
     spec:
-      restartPolicy: Never
-
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-kafka
+          image: busybox
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until nc -z kafka 9092; do
+                echo "Waiting for kafka..."
+                sleep 5
+              done
+              echo "Kafka is ready"
       containers:
         - name: kafka-topic-init
-          image: bitnami/kafka:3.7.1
-
+          image: confluentinc/cp-kafka:7.6.0
           command:
             - /bin/bash
             - -c
@@ -19,3 +30,4 @@ spec:
               kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic user.created --partitions 1 --replication-factor 1
               kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic user.updated --partitions 1 --replication-factor 1
               kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic user.deleted --partitions 1 --replication-factor 1
+              echo "Topics created successfully"
