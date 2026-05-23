@@ -1,0 +1,90 @@
+# Ignore node_modules directory, as it contains dependencies
+node_modules/
+
+# Ignore log files and error reports
+logs/
+*.log
+npm-debug.log*
+
+# Ignore local environment configuration files
+# Ignore local environment configuration files
+.env
+.env.local
+.env.*.local
+
+# Ignore user-specific files
+.npm
+.pnpm
+yarn-error.log
+
+# Ignore the build output
+dist/
+build/
+out/
+
+# Ignore coverage output
+coverage/
+
+# Ignore .DS_Store files on macOS
+.DS_Store
+
+# Ignore any local configuration files
+.local-*
+
+# Ignore any terraform configuration files
+.terraform/
+
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+# Exclude the .terraform directory in any subdirectory
+**/.terraform/
+
+# Exclude the .terraform directory
+/.terraform/
+
+# Exclude Terraform state files and directories
+*.tfstate.*
+terraform.tfvars
+
+# Ignore Terraform state files
+**/*.tfstate
+**/*.tfstate.*
+
+# Ignore specific inner Terraform directories and their contents
+**/terraform/
+**/terraform.tfstate
+**/terraform.tfstate.*
+**/terraform.tfvars
+*.tfvars
+*.tfvars.json
+# Exclude binary files downloaded during `terraform init`
+*.bin
+
+
+
+# GCP Service keys 
+durable-bond-key.json
+*key.json
+*/*key.json
+**/*key.json
+
+# Ignore binary files
+*.bin
+
+# make sure provide.tf is not commited and pushed to git since it contain sensitive info
+# Azure/Basic/provider.tf
+
+# Azure/*/providers.tf
+# Azure/_2Storage_Account/providers.tf.
+# Azure/Others/providers.tf.
+# Azure/_1Resource_Group/providers.tf. 
+# Azure/_2Storage_Account/providers.tf.  
+# Azure/_3VMs/providers.tf.  
+# Azure/_4VNETs/providers.tf. 
+# Azure/_5Azure_Functions/providers.tf.  
+# Azure/_6Webapps/providers.tf.  
+# Azure/_7SQL/providers.tf.
+
+# **/Azure/*/providers.tf
+# **/providers.tf

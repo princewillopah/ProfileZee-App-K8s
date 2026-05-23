@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  namespace: profilezee
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: kafka
+
+  template:
+    metadata:
+      labels:
+        app: kafka
+
+    spec:
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.5.0
+
+          ports:
+            - containerPort: 9092
+
+          envFrom:
+            - secretRef:
+                name: profilezee-infra-secrets
+            - configMapRef:
+                name: profilezee-infra-config
+        
+
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+
+          livenessProbe:
+            tcpSocket:
+              port: 9092
+
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+

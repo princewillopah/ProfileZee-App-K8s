@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: profilezee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: auth-service:latest
+          ports:
+            - containerPort: 8003
+
+          envFrom:
+            - configMapRef:
+                name: profilezee-app-config
+            - secretRef:
+                name: profilezee-app-secrets
+
+          env:
+            - name: MYSQL_URL
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-app-secrets
+                  key: AUTH_DATABASE_URL
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: MYSQL_PASSWORD
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-app-secrets
+                  key: JWT_SECRET
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 25
+            periodSeconds: 15
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 25
+            periodSeconds: 15

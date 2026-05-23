@@ -1,0 +1,77 @@
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-profiles
+  namespace: profilezee
+spec:
+  serviceName: postgres-profiles
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: postgres-profiles
+
+  template:
+    metadata:
+      labels:
+        app: postgres-profiles
+
+    spec:
+      containers:
+        - name: postgres-profiles
+          image: postgres:15
+
+          ports:
+            - containerPort: 5432
+
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: PROFILES_POSTGRES_DB
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: PROFILES_POSTGRES_USER
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: PROFILES_POSTGRES_PASSWORD
+
+          volumeMounts:
+            - name: postgres-profiles-storage
+              mountPath: /var/lib/postgresql/data
+
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+      volumes:
+        - name: postgres-profiles-storage
+          persistentVolumeClaim:
+            claimName: postgres-profiles-pvc

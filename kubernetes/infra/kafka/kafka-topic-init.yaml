@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-topic-init
+  namespace: profilezee
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: kafka-topic-init
+          image: confluentinc/cp-kafka:7.5.0
+
+          command:
+            - /bin/bash
+            - -c
+            - |
+              kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic user.created --partitions 1 --replication-factor 1
+              kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic user.updated --partitions 1 --replication-factor 1
+              kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic user.deleted --partitions 1 --replication-factor 1

@@ -1,0 +1,84 @@
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-auth
+  namespace: profilezee
+spec:
+  serviceName: mysql-auth
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: mysql-auth
+
+  template:
+    metadata:
+      labels:
+        app: mysql-auth
+
+    spec:
+      containers:
+        - name: mysql-auth
+          image: mysql:8
+
+          ports:
+            - containerPort: 3306
+
+          env:
+            - name: MYSQL_DATABASE
+              valuefrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: MYSQL_DATABASE
+
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: MYSQL_USER
+
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: MYSQL_PASSWORD
+
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: profilezee-infra-secrets
+                  key: MYSQL_ROOT_PASSWORD
+
+          volumeMounts:
+            - name: mysql-auth-storage
+              mountPath: /var/lib/mysql
+
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h localhost -p$MYSQL_ROOT_PASSWORD
+
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h localhost -psecret
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+
+      volumes:
+        - name: mysql-auth-storage
+          persistentVolumeClaim:
+            claimName: mysql-auth-pvc
+
