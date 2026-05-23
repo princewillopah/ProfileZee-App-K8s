@@ -27,7 +27,7 @@ spec:
 
           env:
             - name: MYSQL_DATABASE
-              valuefrom:
+              valueFrom:
                 secretKeyRef:
                   name: profilezee-infra-secrets
                   key: MYSQL_DATABASE

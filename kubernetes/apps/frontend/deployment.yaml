@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: YOUR_DOCKERHUB_USERNAME/profilezee-frontend:latest
+          image: princewillopah2/profilezee-frontend:latest
 
           ports:
             - containerPort: 80

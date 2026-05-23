@@ -19,7 +19,7 @@ def setup_logging():
 setup_logging()
 logger = logging.getLogger("notification-service")
 
-KAFKA_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_SERVERS = os.environ["KAFKA_BOOTSTRAP_SERVERS"]
 
 app = FastAPI(title="Notification Service")
 

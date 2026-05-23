@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: auth-service:latest
+          image: princewillopah2/profilezee-auth-service:latest
           ports:
             - containerPort: 8003
 

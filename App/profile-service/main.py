@@ -23,8 +23,13 @@ setup_logging()
 logger = logging.getLogger("profile-service")
 
 # ─── Config ─────────────────────────────────────────────
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://admin:secret@localhost:5433/profiles_db")
-KAFKA_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+DATABASE_URL = os.environ["DATABASE_URL"]
+KAFKA_SERVERS = os.environ["KAFKA_BOOTSTRAP_SERVERS"]
+
+AWS_ACCESS_KEY = os.environ["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+S3_BUCKET = os.environ["AWS_S3_BUCKET"]
+AWS_REGION = os.environ["AWS_REGION"]
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
@@ -90,6 +95,13 @@ async def consume_delete_events():
         except Exception as e:
             logger.error(f"Kafka error: {e}")
             await asyncio.sleep(5)
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "service": "profile-service"
+    }
 
 @app.on_event("startup")
 async def startup():

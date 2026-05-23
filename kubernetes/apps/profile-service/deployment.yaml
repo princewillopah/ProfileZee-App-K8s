@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: profile-service
-          image: profile-service:latest
+          image: princewillopah2/profilezee-profile-service:latest
           ports:
             - containerPort: 8002
 

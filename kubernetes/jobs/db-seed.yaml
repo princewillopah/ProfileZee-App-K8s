@@ -17,7 +17,7 @@ spec:
         command: ['sh', '-c', 'until nc -z auth-service 8003; do echo waiting for auth-service; sleep 2; done']
       containers:
       - name: seed
-        image: your-registry/user-service:latest  # same image you built from ./user-service
+        image: princewillopah2/profilezee-user-service:latest  # same image you built from ./user-service
         # command: ["python", "seed.py"]
         command:
           - sh
@@ -30,11 +30,11 @@ spec:
             name: service-urls
         - secretRef:
             name: profilezee-admin-secret
-                resources:
-        requests:
-          cpu: "100m"
-          memory: "128Mi"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
 
-        limits:
-          cpu: "250m"
-          memory: "256Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"

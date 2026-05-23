@@ -29,9 +29,9 @@ setup_logging()
 logger = logging.getLogger("user-service")
 
 # ─── Config ──────────────────────────────────────────────────────
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://admin:secret@localhost:5432/users_db")
-KAFKA_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+DATABASE_URL = os.environ["DATABASE_URL"]
+KAFKA_SERVERS = os.environ["KAFKA_BOOTSTRAP_SERVERS"]
+REDIS_URL = os.environ["REDIS_URL"]
 
 # ─── DB ─────────────────────────────────────────────────────────
 engine = create_async_engine(DATABASE_URL, echo=False)

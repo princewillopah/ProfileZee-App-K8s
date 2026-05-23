@@ -25,7 +25,7 @@ spec:
 
           env:
             - name: ZOOKEEPER_CLIENT_PORT
-              valuefrom:
+              valueFrom:
                 configMapKeyRef:
                   name: profilezee-infra-config
                   key: ZOOKEEPER_CLIENT_PORT
