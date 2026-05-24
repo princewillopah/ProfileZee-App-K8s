@@ -92,14 +92,22 @@ def send_email(to_email: str, name: str, action: str):
 
     try:
         context = ssl.create_default_context()
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()
-            server.starttls(context=context)
-            server.login(SMTP_USER, SMTP_PASSWORD)
+        with smtplib.SMTP_SSL(SMTP_HOST, 465, context=context) as server:  # ← changed
+            server.login(SMTP_USER, SMTP_PASSWORD)                          # ← no starttls
             server.sendmail(FROM_EMAIL, to_email, msg.as_string())
         logger.info(f"Email sent to {to_email} for action: {action}")
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {e}")
+    # try:
+    #     context = ssl.create_default_context()
+    #     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+    #         server.ehlo()
+    #         server.starttls(context=context)
+    #         server.login(SMTP_USER, SMTP_PASSWORD)
+    #         server.sendmail(FROM_EMAIL, to_email, msg.as_string())
+    #     logger.info(f"Email sent to {to_email} for action: {action}")
+    # except Exception as e:
+    #     logger.error(f"Failed to send email to {to_email}: {e}")
 
 # ─── Kafka Consumer ──────────────────────────────────────
 async def consume_kafka_events():
