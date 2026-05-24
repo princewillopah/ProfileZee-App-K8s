@@ -199,7 +199,7 @@ export default function Login() {
           </form>
 
           <p className="login-hint">
-            Only admins can create, edit, or delete users.
+            Login: admin@userapp.com / Password: Admin@1234
           </p>
         </div>
       </div>
