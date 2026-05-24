@@ -11,16 +11,12 @@ import uuid, json, os, asyncio, redis.asyncio as aioredis
 import logging
 from pythonjsonlogger import jsonlogger
 
-# ─── Logging (FIXED) ─────────────────────────────────────────────
+# ─── Logging ─────────────────────────────────────────────────────
 def setup_logging():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-
     handler = logging.StreamHandler()
-    formatter = jsonlogger.JsonFormatter(
-        "%(asctime)s %(levelname)s %(name)s %(message)s"
-    )
-
+    formatter = jsonlogger.JsonFormatter("%(asctime)s %(levelname)s %(name)s %(message)s")
     handler.setFormatter(formatter)
     logger.handlers.clear()
     logger.addHandler(handler)
@@ -33,7 +29,7 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 KAFKA_SERVERS = os.environ["KAFKA_BOOTSTRAP_SERVERS"]
 REDIS_URL = os.environ["REDIS_URL"]
 
-# ─── DB ─────────────────────────────────────────────────────────
+# ─── DB ──────────────────────────────────────────────────────────
 engine = create_async_engine(DATABASE_URL, echo=False)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -91,12 +87,11 @@ app.add_middleware(
 kafka_producer: AIOKafkaProducer = None
 redis_client = None
 
-# ─── DB Dependency ───────────────────────────────────────────────
+# ─── Dependencies ─────────────────────────────────────────────────
 async def get_db():
     async with SessionLocal() as session:
         yield session
 
-# ─── Kafka Helper ────────────────────────────────────────────────
 async def publish_event(topic: str, data: dict):
     if kafka_producer:
         await kafka_producer.send_and_wait(topic, json.dumps(data).encode())
@@ -162,10 +157,72 @@ async def list_users(db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(select(User).order_by(User.created_at.desc()))
     users = result.scalars().all()
-
     data = [UserResponse.model_validate(u).model_dump(mode="json") for u in users]
 
     if redis_client:
         await redis_client.setex("all_users", 60, json.dumps(data))
 
     return data
+
+@app.get("/users/{user_id}", response_model=UserResponse)
+async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
+    if redis_client:
+        cached = await redis_client.get(f"user:{user_id}")
+        if cached:
+            return json.loads(cached)
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if redis_client:
+        await redis_client.setex(f"user:{user_id}", 60, json.dumps(UserResponse.model_validate(user).model_dump(mode="json")))
+
+    return user
+
+@app.put("/users/{user_id}", response_model=UserResponse)
+async def update_user(user_id: str, data: UserUpdate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    for field, value in data.model_dump(exclude_none=True).items():
+        setattr(user, field, value)
+
+    user.updated_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(user)
+
+    if redis_client:
+        await redis_client.delete("all_users")
+        await redis_client.delete(f"user:{user_id}")
+
+    await publish_event("user.updated", {
+        "user_id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "action": "updated"
+    })
+
+    return user
+
+@app.delete("/users/{user_id}", status_code=204)
+async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    await db.delete(user)
+    await db.commit()
+
+    if redis_client:
+        await redis_client.delete("all_users")
+        await redis_client.delete(f"user:{user_id}")
+
+    await publish_event("user.deleted", {
+        "user_id": user_id,
+        "action": "deleted"
+    })
