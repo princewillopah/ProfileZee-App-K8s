@@ -148,21 +148,64 @@ async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
 
     return user
 
+# @app.get("/users", response_model=list[UserResponse])
+# async def list_users(db: AsyncSession = Depends(get_db)):
+#     if redis_client:
+#         cached = await redis_client.get("all_users")
+#         if cached:
+#             return json.loads(cached)
+
+#     result = await db.execute(select(User).order_by(User.created_at.desc()))
+#     users = result.scalars().all()
+#     data = [UserResponse.model_validate(u).model_dump(mode="json") for u in users]
+
+#     if redis_client:
+#         await redis_client.setex("all_users", 60, json.dumps(data))
+
+#     return data
+
+# Replace the list_users route in user-service/main.py with this version
+# It adds ?search= and ?role= query param support
+
 @app.get("/users", response_model=list[UserResponse])
-async def list_users(db: AsyncSession = Depends(get_db)):
-    if redis_client:
-        cached = await redis_client.get("all_users")
+async def list_users(
+    search: str | None = None,
+    role: str | None = None,
+    db: AsyncSession = Depends(get_db)
+):
+    # Only use cache for unfiltered requests
+    cache_key = "all_users"
+    if not search and not role and redis_client:
+        cached = await redis_client.get(cache_key)
         if cached:
             return json.loads(cached)
 
-    result = await db.execute(select(User).order_by(User.created_at.desc()))
+    query = select(User).order_by(User.created_at.desc())
+
+    if search:
+        from sqlalchemy import or_
+        q = f"%{search.lower()}%"
+        query = query.where(
+            or_(
+                User.name.ilike(q),
+                User.email.ilike(q),
+                User.department.ilike(q),
+            )
+        )
+
+    if role:
+        query = query.where(User.role == role)
+
+    result = await db.execute(query)
     users = result.scalars().all()
     data = [UserResponse.model_validate(u).model_dump(mode="json") for u in users]
 
-    if redis_client:
-        await redis_client.setex("all_users", 60, json.dumps(data))
+    if not search and not role and redis_client:
+        await redis_client.setex(cache_key, 60, json.dumps(data))
 
     return data
+
+
 
 @app.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
