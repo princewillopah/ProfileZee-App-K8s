@@ -118,9 +118,9 @@ cp .env.example .env
 
 # for example:
 # AWS S3 — required for profile picture uploads
-AWS_ACCESS_KEY_ID=HDSUHEFHGGBFFR7F8FE # this is fake 
+AWS_ACCESS_KEY_ID=HDSUHEFHGGBxFFR7F8FE # this is fake 
 AWS_SECRET_ACCESS_KEY=g+0xksdhihfhfesbrGHGuhvsrhsfruhfsguhiusrt # this is fake 
-AWS_S3_BUCKET=my-xxxGT-s3-bucket-xxx
+AWS_S3_BUCKET=my-xxxGT-s3-xbucket-xxx
 AWS_REGION=us-east-1
 
 # Email — use Gmail App Password or SendGrid

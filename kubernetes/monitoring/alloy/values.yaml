@@ -1,0 +1,79 @@
+alloy:
+  configMap:
+    create: true
+    content: |
+      // ── Prometheus scraping ──────────────────────────────
+      prometheus.scrape "profilezee_services" {
+        targets = [
+          {"__address__" = "user-service.profilezee.svc.cluster.local:8001", "job" = "user-service"},
+          {"__address__" = "profile-service.profilezee.svc.cluster.local:8002", "job" = "profile-service"},
+          {"__address__" = "notification-service.profilezee.svc.cluster.local:8004", "job" = "notification-service"},
+        ]
+        metrics_path = "/metrics"
+        forward_to   = [prometheus.remote_write.default.receiver]
+      }
+
+      prometheus.scrape "auth_service" {
+        targets = [
+          {"__address__" = "auth-service.profilezee.svc.cluster.local:8003", "job" = "auth-service"},
+        ]
+        metrics_path = "/actuator/prometheus"
+        forward_to   = [prometheus.remote_write.default.receiver]
+      }
+
+      prometheus.remote_write "default" {
+        endpoint {
+          url = "http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write"
+        }
+      }
+
+      // ── Log collection ───────────────────────────────────
+      discovery.kubernetes "pods" {
+        role = "pod"
+        namespaces {
+          names = ["profilezee"]
+        }
+      }
+
+      discovery.relabel "profilezee_pods" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          target_label  = "app"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+      }
+
+      loki.source.kubernetes "profilezee_logs" {
+        targets    = discovery.relabel.profilezee_pods.output
+        forward_to = [loki.write.default.receiver]
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+controller:
+  type: daemonset          # runs on every node — picks up all pod logs

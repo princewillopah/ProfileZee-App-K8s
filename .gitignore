@@ -72,7 +72,7 @@ durable-bond-key.json
 # Ignore binary files
 *.bin
 
-kubernetes/secrets/
+kubernetes/app-secrets/
 # make sure provide.tf is not commited and pushed to git since it contain sensitive info
 # Azure/Basic/provider.tf
 
@@ -88,4 +88,4 @@ kubernetes/secrets/
 # Azure/_7SQL/providers.tf.
 
 # **/Azure/*/providers.tf
-# **/providers.tfkubernetes/secrets/
+**/providers.tfkubernetes/app-secrets/

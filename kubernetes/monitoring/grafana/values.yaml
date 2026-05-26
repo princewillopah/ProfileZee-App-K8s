@@ -1,0 +1,96 @@
+admin:
+  existingSecret: grafana-secret
+  userKey: admin-user
+  passwordKey: admin-password
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+persistence:
+  enabled: true
+  storageClassName: standard
+  size: 2Gi
+
+service:
+  type: NodePort
+  nodePort: 32000
+
+initChownData:
+  enabled: false
+
+securityContext:
+  runAsUser: 472
+  runAsGroup: 472
+  fsGroup: 472
+
+# Grafana secret for environment variables
+envFromSecret: grafana-secret
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090
+        isDefault: true
+        editable: true
+
+      - name: Loki
+        type: loki
+        url: http://loki.monitoring.svc.cluster.local:3100
+        editable: true
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: default
+        orgId: 1
+        folder: "ProfileZee"
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+dashboards:
+  default:
+    kubernetes-cluster:
+      gnetId: 7249
+      revision: 1
+      datasource: Prometheus
+    fastapi-metrics:
+      gnetId: 16110
+      revision: 1
+      datasource: Prometheus
+    node-exporter:
+      gnetId: 1860
+      revision: 37
+      datasource: Prometheus
+    jvm-micrometer:
+      gnetId: 4701
+      revision: 1
+      datasource: Prometheus
+
+grafana.ini:
+  server:
+    root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+  auth.anonymous:
+    enabled: false
+  smtp:
+      enabled: true
+      host: smtp.gmail.com:465
+      user: $__env{GF_SMTP_USER}
+      password: $__env{GF_SMTP_PASSWORD}
+      from_address: princewillopah.dev@gmail.com
+      from_name: ProfileZee Alerts
+      startTLS_policy: NoStartTLS
+
+  unified_alerting:
+    enabled: true
